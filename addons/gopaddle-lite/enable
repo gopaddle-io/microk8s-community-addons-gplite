@@ -8,7 +8,7 @@ KUBECTL="$SNAP/kubectl --kubeconfig=${SNAP_DATA}/credentials/client.config"
 
 HELM="$SNAP_DATA/bin/helm3 --kubeconfig=$SNAP_DATA/credentials/client.config"
 
-KUBE_VERSION=$(snap info microk8s | grep installed |xargs| cut -d ' ' -f 2|cut -d 'v' -f 2| cut -d '.' -f 2)
+KUBE_VERSION=$($KUBECTL version | grep Server| cut -d '{' -f 2| cut -d ',' -f 2| cut -d ':' -f 2 |cut -d '+' -f 1|cut -d '"' -f 2)
 
 CURRENT_DIR=$(cd $(dirname "${BASH_SOURCE[0]}") && pwd)
 
@@ -33,9 +33,6 @@ while true; do
     -v|--version)
       HELM_VERSION="$2"
       shift 2;;
-    # -s|--storageclass)
-    #   STORAGECLASS="$2"
-    #   shift 2;;
     --)
       break;;
   esac
@@ -71,7 +68,7 @@ do_prerequisites() {
   "$SNAP/microk8s-enable.wrapper" helm3
 
   # enable storage
-  "$SNAP/microk8s-enable.wrapper" storage
+  "$SNAP/microk8s-enable.wrapper" hostpath-storage
 
   # enable dns 
   "$SNAP/microk8s-enable.wrapper" dns
@@ -79,9 +76,7 @@ do_prerequisites() {
   # enable metrics-server
   "$SNAP/microk8s-enable.wrapper" metrics-server
    
-  run_with_sudo apt update
-
-  run_with_sudo apt install jq -y
+   run_with_sudo snap install jq
 }
 
 
@@ -130,7 +125,6 @@ then
 run_with_sudo $HELM install gp-rabbitmq-4-2 gp-lite/gp-lite  --namespace gp-lite  --set global.routingType=NodePortWithOutIngress --set global.installType=public --set global.storageClassName=$STORAGECLASS --set global.gp-rabbitmq.enabled=true --set global.gp-lite-core.enabled=false --set global.nodeSelector.gp-install-node=node1 --set global.nodeName=$NODENAME  --version $HELM_VERSION
 
 #install gp-lite
-sleep 1m
 run_with_sudo $HELM install gp-core-4-2 gp-lite/gp-lite  --namespace gp-lite  --set global.routingType=NodePortWithOutIngress --set global.installType=public --set global.storageClassName=$STORAGECLASS --set global.cluster.provider=other --set-string global.gopaddle.https=false --set-string global.gopaddleWebhook.https=false --set global.staticIP=$STATICIP  --set global.gp-rabbitmq.enabled=false --set global.gp-lite-core.enabled=true --set global.installSource=microk8s --set global.nodeSelector.gp-install-node=node1 --set global.nodeName=$NODENAME  --version $HELM_VERSION
 elif [ $PUBLICIP == false ]
 then 
@@ -138,18 +132,22 @@ then
 run_with_sudo $HELM install gp-rabbitmq-4-2 gp-lite/gp-lite  --namespace gp-lite  --set global.routingType=NodePortWithOutIngress --set global.installType=private --set global.storageClassName=$STORAGECLASS --set global.gp-rabbitmq.enabled=true --set global.gp-lite-core.enabled=false  --set global.nodeSelector.gp-install-node=node1 --set global.nodeName=$NODENAME --version $HELM_VERSION
 
 #install gp-lite
-sleep 1m
 run_with_sudo $HELM install gp-core-4-2 gp-lite/gp-lite  --namespace gp-lite  --set global.routingType=NodePortWithOutIngress --set global.installType=private --set global.storageClassName=$STORAGECLASS --set global.cluster.provider=other --set-string global.gopaddle.https=false --set-string global.gopaddleWebhook.https=false --set global.staticIP=$STATICIP  --set global.gp-rabbitmq.enabled=false --set global.gp-lite-core.enabled=true --set global.installSource=microk8s --set global.nodeSelector.gp-install-node=node1 --set global.nodeName=$NODENAME --version $HELM_VERSION
 fi
 
 echo ""
 echo "Waiting for the gopaddle volume to move bound. This may take a while."
-run_with_sudo $KUBECTL  wait pvc --for=jsonpath='{.status.phase}'=Bound -l released-by=gopaddle -n gp-lite --timeout=20m
+while true
+do
+   if microk8s kubectl wait pvc --for=jsonpath='{.status.phase}'=Bound -l released-by=gopaddle -n gp-lite --timeout=20m 2>/dev/null; then
+   	break
+   fi
+done
+
 
 #adding label to volume
 echo ""
 echo "adding label to persistentvolume"
-sleep 1m
 PVCLIST=$(run_with_sudo $KUBECTL get pvc -n gp-lite -o json | jq '.items[].spec.volumeName')
 
 for i in $(echo $PVCLIST | tr " " "\n")
