@@ -554,3 +554,5 @@ http://help.gopaddle.io/en/articles/6227234-support-matrix-for-gopaddle-lite-4-2
 For help related to gopaddle community (lite) edition, visit the gopaddle Help Center at:
      https://help.gopaddle.io
 
+## Maintainers
+Microk8s Community Addon gopaddle lite is maintained by [gopaddle.io](https://gopaddle.io) team.
