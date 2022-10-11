@@ -150,11 +150,11 @@ enable_gopaddle_lite() {
         $KUBECTL patch  pv $i --type='merge' -p '{"metadata":{"labels":{"gp-install-pv":"'$STORAGECLASS'"}}}'
     done
     
-    echo ""
-    echo "Waiting for the gopaddle services to move to running state. This may take a while."
+    #echo ""
+    #echo "Waiting for the gopaddle services to move to running state. This may take a while."
     
     
-    $KUBECTL wait --for=condition=ready pod -l released-by=gopaddle -n gp-lite --timeout=20m
+    #$KUBECTL wait --for=condition=ready pod -l released-by=gopaddle -n gp-lite --timeout=20m
     
     echo ""
     echo ""
