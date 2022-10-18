@@ -14,7 +14,7 @@ indicate the 'gopaddle addon' on microk8s:
 
 2. gopaddle Lite add-on is supported only on a single node microk8s cluster
 
-3. System resource requirements: 8 vCPU, 32 GB RAM, 50 GB Disk
+3. System resource requirements: 4 vCPU, 8 GB RAM, 50 GB Disk
 
 4. 'snap' tool must already be installed.
 
@@ -102,7 +102,7 @@ sudo microk8s enable gopaddle-lite -i 130.198.9.42 -v 4.2.4
 
 The following is a sample output for the above example:
 ```
-$ sudo microk8s enable gopaddle-lite -i 130.198.9.42 -v 4.2.4
+$ sudo microk8s enable gopaddle-lite -i 130.198.9.42 -v 4.2.5
 Infer repository gp-lite for addon gopaddle-lite
 static IP of the microk8s cluster: 130.198.9.42
 
@@ -270,7 +270,7 @@ http://130.198.9.42:30003
 sudo microk8s enable gopaddle-lite
 ```
 
-By default, the latest gopaddle-lite version is installed, which is currently 4.2.4.
+By default, the latest gopaddle-lite version is installed, which is currently 4.2.5.
 
 An IP address is required to access the gopaddle lite end point. When not
 supplied from the command line, the default IP address is determined in the order
@@ -554,3 +554,5 @@ http://help.gopaddle.io/en/articles/6227234-support-matrix-for-gopaddle-lite-4-2
 For help related to gopaddle community (lite) edition, visit the gopaddle Help Center at:
      https://help.gopaddle.io
 
+## Maintainers
+Microk8s Community Addon gopaddle lite is maintained by [gopaddle.io](https://gopaddle.io) team.
